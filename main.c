@@ -1,12 +1,21 @@
 #include<stdio.h>
 #include<string.h>
 #include<ctype.h>
-//#include "cabeceras.h"
 #include "cabeceras.h"
 
 #define LONGITUD_COMANDO 100
 
-void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps);
+void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps){
+	printf("Inodos: ");
+	for (int i = 0; i < MAX_INODOS; i++){
+		printf(" %d ", ext_bytemaps->bmap_inodos[i]);
+	}
+	printf("\nBloques[0-25]: ");
+	for (int i = 0; i < 25; i++){
+		printf(" %d ", ext_bytemaps->bmap_bloques[i]);
+	}
+	printf("\n");
+};
 // Devuelve 0 si el comando es valido.
 int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argumento2){
 	int r = 1;
@@ -40,7 +49,14 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
 	return r;
 }
 
-void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup);
+void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup){
+	printf("Bloque %d\n", psup->s_block_size);
+	printf("inodos Particion = %d\n", psup->s_inodes_count);
+	printf("inodos libres = %d:\n", psup->s_free_inodes_count);
+	printf("Bloques particion = %d\n", psup->s_blocks_count);
+	printf("Bloques libres = %d:\n", psup->s_free_blocks_count);
+	printf("Primer bloque de datos = %d:\n", psup->s_first_data_block);
+};
 
 // Devuelve 0 si no encuentra el fichero.
 int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre){
@@ -175,7 +191,7 @@ int main()
 		}
 		else if (strcmp(orden,"bytemaps\n")==0) {
 			printf("Comando Bytemaps.\n");
-			//Directorio(&directorio,&ext_blq_inodos);
+			Printbytemaps(&ext_bytemaps);
 			continue;
 		}
 		else if (strcmp(orden,"copy\n")==0) {
@@ -185,7 +201,7 @@ int main()
 		}
 		else if (strcmp(orden,"info\n")==0) {
 			printf("Comando Informacion.\n");
-			//Directorio(&directorio,&ext_blq_inodos);
+			LeeSuperBloque(&ext_superblock);
 			continue;
 		}
 		else if (strcmp(orden,"imprimir\n")==0) {
@@ -226,7 +242,7 @@ int main()
 		//faltan los datos y cerrar
 		if (strcmp(orden,"salir\n")==0){
 			//GrabarDatos(&memdatos,fent);
-			//fclose(fent);
+			fclose(fent);
 			return 0;
 		}
 	}
