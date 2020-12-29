@@ -63,7 +63,14 @@ int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre)
 	int r = 0;
 
 	//Buscar el ficehro.
-	printf("\tSe bucsa el ficehro %s.\n", &nombre);
+	for(int i = 1; i < MAX_FICHEROS;i++){
+		if(directorio[i].dir_inodo != NULL_INODO){
+			if (strcmp(directorio[i].dir_nfich,nombre)==0){
+				r=1;
+				break;
+			}
+		}
+	}
 
 	return 0;
 }
@@ -71,13 +78,13 @@ int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre)
 void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos){
 	for(int i = 1; i < MAX_FICHEROS;i++){
 		if(directorio[i].dir_inodo != NULL_INODO){
-		printf("Fichero: %s	tamaño: %d	inodo: %d	bloques: ", directorio[i].dir_nfich, inodos->blq_inodos[directorio[i].dir_inodo].size_fichero, directorio[i].dir_inodo);
-		for(int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
-			if(inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j] != NULL_BLOQUE){
-			printf(" %d ", inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j]);
+			printf("Fichero: %s	tamaño: %d	inodo: %d	bloques: ", directorio[i].dir_nfich, inodos->blq_inodos[directorio[i].dir_inodo].size_fichero, directorio[i].dir_inodo);
+			for(int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
+				if(inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j] != NULL_BLOQUE){
+					printf(" %d ", inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j]);
+				}
 			}
-		}
-		printf("\n");
+			printf("\n");
 		}
 	}
 	printf("\n");
@@ -97,7 +104,14 @@ int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombrea
 	}
 
 	if (r==0){
-		printf("\tSe cambian los nombres de los ficheros.\n");
+		for(int i = 1; i < MAX_FICHEROS;i++){
+			if(directorio[i].dir_inodo != NULL_INODO){
+				if (strcmp(directorio[i].dir_nfich,nombreantiguo)==0){
+					memcpy(directorio[i].dir_nfich, nombrenuevo, LEN_NFICH);
+					break;
+				}
+			}
+		}
 	}
 
 	return r;
