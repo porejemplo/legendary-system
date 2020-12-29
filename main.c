@@ -69,7 +69,18 @@ int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre)
 }
 
 void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos){
-	printf("Se imprime la info del firectorio.\n");
+	for(int i = 1; i < MAX_FICHEROS;i++){
+		if(directorio[i].dir_inodo != NULL_INODO){
+		printf("Fichero: %s	tamaño: %d	inodo: %d	bloques: ", directorio[i].dir_nfich, inodos->blq_inodos[directorio[i].dir_inodo].size_fichero, directorio[i].dir_inodo);
+		for(int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
+			if(inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j] != NULL_BLOQUE){
+			printf(" %d ", inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j]);
+			}
+		}
+		printf("\n");
+		}
+	}
+	printf("\n");
 }
 
 // Cambia el nomrbe de un fichero por otro.
