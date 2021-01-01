@@ -66,14 +66,12 @@ int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre)
 	//Buscar el ficehro.
 	for(int i = 1; i < MAX_FICHEROS;i++){
 		if(directorio[i].dir_inodo != NULL_INODO){
-			printf("-%s--%s-\n",directorio[i].dir_nfich,nombre);
 			if (strcmp(directorio[i].dir_nfich,nombre)==0){
-				r=1;
+				r=directorio[i].dir_inodo;
 				break;
 			}
 		}
 	}
-
 	return r;
 }
 
@@ -97,15 +95,16 @@ void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos){
 //  1 - no se encuentra el fichero original.
 // -1 - ya hay un fichero con el nuevo nombre.
 int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombreantiguo, char *nombrenuevo){
-	int r = 0;
-	if (BuscaFich(directorio, inodos, nombreantiguo) == 0){
-		r=1;
-	}
-	if (r==0 && BuscaFich(directorio, inodos, nombrenuevo) != 0){
+	int r = BuscaFich(directorio, inodos, nombrenuevo);
+	if (r > 0){
 		r=-1;
 	}
+	if (r == 0){
+		r = BuscaFich(directorio, inodos, nombreantiguo);
+	}
 
-	if (r==0){
+	if (r > 0){
+		//memcpy(directorio[i].dir_nfich, nombrenuevo, LEN_NFICH);
 		for(int i = 1; i < MAX_FICHEROS;i++){
 			if(directorio[i].dir_inodo != NULL_INODO){
 				if (strcmp(directorio[i].dir_nfich,nombreantiguo)==0){
@@ -121,13 +120,14 @@ int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombrea
 
 // Devuelve 0 si se puede imprimir.
 int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre){
-	int r=0;
-	if (BuscaFich(&directorio, &inodos, nombre) != 0){
-		r=1;
-	}
-
-	if (r==0){
-		printf("\tSe imprime el contenido del fichero %s.\n", &nombre);
+	int r=BuscaFich(directorio, inodos, nombre);
+	if (r!=0){
+		for(int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
+			if(inodos->blq_inodos[r].i_nbloque[j] != NULL_BLOQUE){
+				printf("%s ", memdatos[j].dato);
+			}
+		}
+		printf("\n");
 	}
 
 	return r;
@@ -223,7 +223,9 @@ int main()
 	memcpy(&ext_bytemaps,(EXT_BLQ_INODOS *)&datosfich[1], SIZE_BLOQUE);
 	memcpy(&ext_blq_inodos,(EXT_BLQ_INODOS *)&datosfich[2], SIZE_BLOQUE);
 	memcpy(&memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE);
-
+	/*for(int i = 0 ; i<10; i++){
+		printf("%s", memdatos[i].dato);
+	}*/
 	// Buce de tratamiento de comandos
 	for (;;){
 		do {
@@ -262,7 +264,7 @@ int main()
 		else if (strcmp(orden,"imprimir")==0) {
 			i = Imprimir(&directorio, &ext_blq_inodos, &memdatos, argumento1);
 
-			if (i>0)
+			if (i==0)
 				printf("ERROR: Fichero %s no encontrado.\n", &argumento1);
 			
 			continue;
@@ -270,10 +272,10 @@ int main()
 		else if (strcmp(orden,"rename")==0) {
 			i = Renombrar(&directorio, &ext_blq_inodos, argumento1, argumento2);
 
-			if (i<0)
-				printf("ERROR: El fichero -%s- ya existe.\n", &argumento2);
-			else if (i>0)
-				printf("ERROR: Fichero -%s- no encontrado.\n", &argumento1);
+			if (i < 0)
+				printf("ERROR: El fichero %s ya existe.\n", &argumento2);
+			else if (i == 0)
+				printf("ERROR: Fichero %s no encontrado.\n", &argumento1);
 			
 			continue;
 		}
