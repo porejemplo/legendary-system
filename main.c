@@ -141,6 +141,21 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 
 	if (r==0){
 		printf("\tSe borra el fichero %s.\n", &nombre);
+		for(int i = 1; i < MAX_FICHEROS;i++){
+			if(directorio[i].dir_inodo != NULL_INODO){
+				if (strcmp(directorio[i].dir_nfich,nombre)==0){
+					memcpy(directorio[i].dir_nfich,"       ", LEN_NFICH);
+					inodos->blq_inodos[directorio[i].dir_inodo].size_fichero=0;
+					for(int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
+						if(inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j] != NULL_BLOQUE){
+							inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j]=NULL_BLOQUE;
+						}
+					}
+					directorio[i].dir_inodo=NULL_INODO;
+					break;
+				}
+			}
+		}
 	}
 
 	return r;
@@ -160,6 +175,23 @@ int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 
 	if (r==0){
 		printf("\tSe copia %s en %s.\n", &nombreorigen, &nombredestino);
+		for(int i = 1; i < MAX_FICHEROS;i++){
+			if(directorio[i].dir_inodo != NULL_INODO){
+				if (strcmp(directorio[i].dir_nfich,nombreorigen)==0){
+					break;
+				}
+			}
+		}
+		for(int j = 1; i < MAX_FICHEROS;j++){
+			if(directorio[j].dir_inodo == NULL_INODO){
+				directorio[j].dir_inodo =1;
+				memcpy(directorio[j].dir_nfich,nombredestino, LEN_NFICH);
+				inodos->blq_inodos[directorio[j].dir_inodo].size_fichero=inodos->blq_inodos[directorio[i].dir_inodo].size_fichero;
+				metadatos[j]=metadatos[i];
+				
+				
+			}
+		}
 	}
 
 	return r;
