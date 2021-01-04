@@ -145,9 +145,11 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 					inodos->blq_inodos[directorio[i].dir_inodo].size_fichero=0;
 					for(int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
 						if(inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j] != NULL_BLOQUE){
+							ext_bytemaps->bmap_bloques[inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j]]=0;
 							inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j]=NULL_BLOQUE;
 						}
 					}
+					ext_bytemaps->bmap_inodos[directorio[i].dir_inodo]=0;
 					directorio[i].dir_inodo=NULL_INODO;
 					break;
 				}
@@ -178,6 +180,7 @@ int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 				for(int j = 3; j < MAX_NUMS_BLOQUE_INODO; j++){
 					if(inodos->blq_inodos[j].size_fichero== 0){
 						directorio[i].dir_inodo=j;
+						ext_bytemaps->bmap_inodos[directorio[i].dir_inodo]=1;
 						break;	
 					}
 				}
@@ -188,10 +191,10 @@ int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 					if(inodos->blq_inodos[r].i_nbloque[j] != NULL_BLOQUE){
 						do{
 							cont++;
-							//printf("%s\n",memdatos[cont].dato);
 						}while(ext_bytemaps->bmap_bloques[cont]==1);
-						//memcpy(memdatos[cont].dato,memdatos[inodos->blq_inodos[r].i_nbloque[j]].dato,MAX_BLOQUES_DATOS);
-						printf("%s\n",memdatos[inodos->blq_inodos[r].i_nbloque[j]].dato);
+						memcpy(memdatos[cont].dato,memdatos[inodos->blq_inodos[r].i_nbloque[j]-4].dato,MAX_BLOQUES_DATOS);
+						inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j]=cont;
+						ext_bytemaps->bmap_bloques[inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j]]=1;
 					}
 				}
 				break;
