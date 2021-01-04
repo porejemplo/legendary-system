@@ -134,13 +134,10 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *mem
 }
 
 int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, char *nombre,  FILE *fich){
-	int r=0;
-	if (BuscaFich(&directorio, &inodos, nombre) != 0){
-		r=1;
-	}
-
-	if (r==0){
-		printf("\tSe borra el fichero %s.\n", &nombre);
+	int r=BuscaFich(directorio, inodos, nombre);
+	
+	if (r!=0){
+		printf("\tSe borra el fichero %s.\n", nombre);
 		for(int i = 1; i < MAX_FICHEROS;i++){
 			if(directorio[i].dir_inodo != NULL_INODO){
 				if (strcmp(directorio[i].dir_nfich,nombre)==0){
@@ -164,7 +161,7 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 // 0	Se copia sin problemas.
 // 1	No existe el origen.
 // -1	Ya existe el archivo
-int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino,  FILE *fich){
+/*int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino,  FILE *fich){
 	int r=0;
 	if (BuscaFich(&directorio, &inodos, nombreorigen) != 0){
 		r=1;
@@ -182,12 +179,12 @@ int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 				}
 			}
 		}
-		for(int j = 1; i < MAX_FICHEROS;j++){
+		for(int j = 1; j < MAX_FICHEROS;j++){
 			if(directorio[j].dir_inodo == NULL_INODO){
 				directorio[j].dir_inodo =1;
 				memcpy(directorio[j].dir_nfich,nombredestino, LEN_NFICH);
-				inodos->blq_inodos[directorio[j].dir_inodo].size_fichero=inodos->blq_inodos[directorio[i].dir_inodo].size_fichero;
-				metadatos[j]=metadatos[i];
+				inodos->blq_inodos[directorio[j].dir_inodo].size_fichero=inodos->blq_inodos[directorio[j].dir_inodo].size_fichero;
+				//metadatos[j]=metadatos[i];
 				
 				
 			}
@@ -195,7 +192,7 @@ int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 	}
 
 	return r;
-}
+}*/
 
 char* LeerLineaDinamica ( int tamanoMaximo )
 {
@@ -314,8 +311,8 @@ int main()
 		else if (strcmp(orden,"remove")==0) {
 			i = Borrar(&directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, argumento1, fent);
 
-			if (i>0)
-				printf("ERROR: Fichero %s no encontrado.\n", &argumento1);
+			if (i==0)
+				printf("ERROR: Fichero %s no encontrado1.\n", &argumento1);
 			
 			continue;
 		}
