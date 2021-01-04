@@ -312,7 +312,7 @@ int main()
 			i = Borrar(&directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, argumento1, fent);
 
 			if (i==0)
-				printf("ERROR: Fichero %s no encontrado1.\n", &argumento1);
+				printf("ERROR: Fichero %s no encontrado.\n", &argumento1);
 			
 			continue;
 		}
