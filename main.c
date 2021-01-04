@@ -229,20 +229,6 @@ char* LeerLineaDinamica ( int tamanoMaximo ){
 	return linea;
 }
 
-void Grabarinodosydirectorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, FILE *fich){
-	memcpy((EXT_ENTRADA_DIR *)&fich[3], &directorio, SIZE_BLOQUE);
-	memcpy((EXT_BLQ_INODOS *)&fich[2], &inodos, SIZE_BLOQUE);
-};
-void GrabarByteMaps(EXT_BYTE_MAPS *ext_bytemaps, FILE *fich){
-	memcpy((EXT_BLQ_INODOS *)&fich[1], &ext_bytemaps, SIZE_BLOQUE);
-};
-void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich){
-	memcpy((EXT_SIMPLE_SUPERBLOCK *)&fich[0], &ext_superblock, SIZE_BLOQUE);
-};
-void GrabarDatos(EXT_DATOS *memdatos, FILE *fich){
-	memcpy((EXT_DATOS *)&fich[4], &memdatos, MAX_BLOQUES_DATOS*SIZE_BLOQUE);
-};
-
 int main()
 {
 	char *comando;//[LONGITUD_COMANDO];
@@ -358,20 +344,6 @@ int main()
 				fseek(fent, 0, SEEK_SET);
 				fwrite(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);
 			}
-			
-			/*memcpy((EXT_SIMPLE_SUPERBLOCK *)&datosfich[0], &ext_superblock, SIZE_BLOQUE);
-			memcpy((EXT_BLQ_INODOS *)&datosfich[1], &ext_bytemaps, SIZE_BLOQUE);
-			memcpy((EXT_BLQ_INODOS *)&datosfich[2], &ext_blq_inodos, SIZE_BLOQUE);
-			memcpy((EXT_ENTRADA_DIR *)&datosfich[3], &directorio, SIZE_BLOQUE);
-			memcpy((EXT_DATOS *)&datosfich[4], &memdatos, MAX_BLOQUES_DATOS*SIZE_BLOQUE);
-			
-			fseek(fent, 0, SEEK_SET);
-			fwrite(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);*/
-			
-			/*Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
-			GrabarByteMaps(&ext_bytemaps,fent);
-			GrabarSuperBloque(&ext_superblock,fent);
-			GrabarDatos(&memdatos,fent);*/
 			fclose(fent);
 			return 0;
 		}
