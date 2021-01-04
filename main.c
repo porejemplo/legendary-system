@@ -229,6 +229,20 @@ char* LeerLineaDinamica ( int tamanoMaximo ){
 	return linea;
 }
 
+void actualizarSuperBloque (EXT_SIMPLE_SUPERBLOCK *psup, EXT_BYTE_MAPS *ext_bytemaps){
+	int inodosLibres = 0;
+	int bloquesLibres = 0;
+	
+	for(int i=0; i<MAX_INODOS || i<MAX_BLOQUES_DATOS; ++i){
+		if (i<MAX_INODOS && ext_bytemaps->bmap_inodos[i]==0)
+			++inodosLibres;
+		if (i<MAX_BLOQUES_DATOS && ext_bytemaps->bmap_bloques[i]==0)
+			++bloquesLibres;
+	}
+	psup->s_free_inodes_count=inodosLibres;
+	psup->s_free_blocks_count=bloquesLibres;
+}
+
 int main()
 {
 	char *comando;//[LONGITUD_COMANDO];
@@ -293,6 +307,7 @@ int main()
 			continue;
 		}
 		else if (strcmp(orden,"info")==0) {
+			actualizarSuperBloque(&ext_superblock, &ext_bytemaps);
 			LeeSuperBloque(&ext_superblock);
 			continue;
 		}
@@ -333,6 +348,7 @@ int main()
 			if (grabardatos>0){
 				memcpy((EXT_ENTRADA_DIR *)&datosfich[3], &directorio, SIZE_BLOQUE);
 				if(grabardatos>1){
+					actualizarSuperBloque(&ext_superblock, &ext_bytemaps);
 					memcpy((EXT_SIMPLE_SUPERBLOCK *)&datosfich[0], &ext_superblock, SIZE_BLOQUE);
 					memcpy((EXT_BLQ_INODOS *)&datosfich[1], &ext_bytemaps, SIZE_BLOQUE);
 					memcpy((EXT_BLQ_INODOS *)&datosfich[2], &ext_blq_inodos, SIZE_BLOQUE);
