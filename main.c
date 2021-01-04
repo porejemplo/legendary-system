@@ -161,38 +161,46 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 // 0	Se copia sin problemas.
 // 1	No existe el origen.
 // -1	Ya existe el archivo
-/*int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino,  FILE *fich){
-	int r=0;
-	if (BuscaFich(&directorio, &inodos, nombreorigen) != 0){
-		r=1;
-	}
-	if (r==0 && BuscaFich(&directorio, &inodos, nombredestino) == 0){
+int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino,  FILE *fich){
+	int r = BuscaFich(directorio, inodos, nombredestino);
+	if (r > 0){
 		r=-1;
 	}
+	if (r == 0){
+		r = BuscaFich(directorio, inodos, nombreorigen);
+	}
 
-	if (r==0){
-		printf("\tSe copia %s en %s.\n", &nombreorigen, &nombredestino);
+	if (r > 0){
+		printf("\tSe copia %s en %s.\n", nombreorigen, nombredestino);
+		
 		for(int i = 1; i < MAX_FICHEROS;i++){
-			if(directorio[i].dir_inodo != NULL_INODO){
-				if (strcmp(directorio[i].dir_nfich,nombreorigen)==0){
-					break;
+			if(directorio[i].dir_inodo == NULL_INODO){
+				for(int j = 3; j < MAX_NUMS_BLOQUE_INODO; j++){
+					if(inodos->blq_inodos[j].size_fichero== 0){
+						directorio[i].dir_inodo=j;
+						break;	
+					}
 				}
-			}
-		}
-		for(int j = 1; j < MAX_FICHEROS;j++){
-			if(directorio[j].dir_inodo == NULL_INODO){
-				directorio[j].dir_inodo =1;
-				memcpy(directorio[j].dir_nfich,nombredestino, LEN_NFICH);
-				inodos->blq_inodos[directorio[j].dir_inodo].size_fichero=inodos->blq_inodos[directorio[j].dir_inodo].size_fichero;
-				//metadatos[j]=metadatos[i];
-				
-				
+				memcpy(directorio[i].dir_nfich,nombredestino, LEN_NFICH);
+				inodos->blq_inodos[directorio[i].dir_inodo].size_fichero=inodos->blq_inodos[r].size_fichero;
+				int cont=2;
+				for(int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
+					if(inodos->blq_inodos[r].i_nbloque[j] != NULL_BLOQUE){
+						do{
+							cont++;
+							//printf("%s\n",memdatos[cont].dato);
+						}while(ext_bytemaps->bmap_bloques[cont]==1);
+						//memcpy(memdatos[cont].dato,memdatos[inodos->blq_inodos[r].i_nbloque[j]].dato,MAX_BLOQUES_DATOS);
+						printf("%s\n",memdatos[inodos->blq_inodos[r].i_nbloque[j]].dato);
+					}
+				}
+				break;
 			}
 		}
 	}
 
 	return r;
-}*/
+}
 
 char* LeerLineaDinamica ( int tamanoMaximo )
 {
@@ -281,8 +289,12 @@ int main()
 			continue;
 		}
 		else if (strcmp(orden,"copy")==0) {
-			printf("Comando Copy.\n");
-			//Directorio(&directorio,&ext_blq_inodos);
+			i=Copiar(&directorio,&ext_blq_inodos,&ext_bytemaps,&ext_superblock,&memdatos,argumento1,argumento2,fent);
+			if (i < 0)
+				printf("ERROR: El fichero %s ya existe.\n", &argumento2);
+			else if (i == 0)
+				printf("ERROR: Fichero %s no encontrado.\n", &argumento1);
+			
 			continue;
 		}
 		else if (strcmp(orden,"info")==0) {
@@ -312,7 +324,7 @@ int main()
 			i = Borrar(&directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, argumento1, fent);
 
 			if (i==0)
-				printf("ERROR: Fichero %s no encontrado1.\n", &argumento1);
+				printf("ERROR: Fichero %s no encontrado.\n", &argumento1);
 			
 			continue;
 		}
