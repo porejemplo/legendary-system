@@ -114,7 +114,7 @@ int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombrea
 			}
 		}
 	}
-
+	
 	return r;
 }
 
@@ -156,7 +156,6 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 			}
 		}
 	}
-
 	return r;
 }
 
@@ -205,8 +204,7 @@ int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 	return r;
 }
 
-char* LeerLineaDinamica ( int tamanoMaximo )
-{
+char* LeerLineaDinamica ( int tamanoMaximo ){
 	int tamanoLinea = 1;
 	char* linea = NULL;
 	linea = (char*) malloc (sizeof(char) * tamanoLinea);
@@ -228,10 +226,19 @@ char* LeerLineaDinamica ( int tamanoMaximo )
 	return linea;
 }
 
-void Grabarinodosydirectorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, FILE *fich);
-void GrabarByteMaps(EXT_BYTE_MAPS *ext_bytemaps, FILE *fich);
-void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich);
-void GrabarDatos(EXT_DATOS *memdatos, FILE *fich);
+void Grabarinodosydirectorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, FILE *fich){
+	memcpy((EXT_ENTRADA_DIR *)&fich[3], &directorio, SIZE_BLOQUE);
+	memcpy((EXT_BLQ_INODOS *)&fich[2], &inodos, SIZE_BLOQUE);
+};
+void GrabarByteMaps(EXT_BYTE_MAPS *ext_bytemaps, FILE *fich){
+	memcpy((EXT_BLQ_INODOS *)&fich[1], &ext_bytemaps, SIZE_BLOQUE);
+};
+void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich){
+	memcpy((EXT_SIMPLE_SUPERBLOCK *)&fich[0], &ext_superblock, SIZE_BLOQUE);
+};
+void GrabarDatos(EXT_DATOS *memdatos, FILE *fich){
+	memcpy((EXT_DATOS *)&fich[4], &memdatos, MAX_BLOQUES_DATOS*SIZE_BLOQUE);
+};
 
 int main()
 {
@@ -255,7 +262,7 @@ int main()
 	// Lectura del fichero completo de una sola vez
 
 	fent = fopen("particion.bin","r+b");
-	fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);    
+	fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);
 
 
 	memcpy(&ext_superblock,(EXT_SIMPLE_SUPERBLOCK *)&datosfich[0], SIZE_BLOQUE);
@@ -263,15 +270,10 @@ int main()
 	memcpy(&ext_bytemaps,(EXT_BLQ_INODOS *)&datosfich[1], SIZE_BLOQUE);
 	memcpy(&ext_blq_inodos,(EXT_BLQ_INODOS *)&datosfich[2], SIZE_BLOQUE);
 	memcpy(&memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE);
-	/*for(int i = 0 ; i<10; i++){
-		printf("%s", memdatos[i].dato);
-	}*/
 	// Buce de tratamiento de comandos
 	for (;;){
 		do {
 			printf (">> ");
-			//fflush(stdin);
-			//fgets(comando, LONGITUD_COMANDO, stdin);
 			
 			comando = LeerLineaDinamica(LONGITUD_COMANDO);
 			
@@ -297,6 +299,12 @@ int main()
 				printf("ERROR: El fichero %s ya existe.\n", &argumento2);
 			else if (i == 0)
 				printf("ERROR: Fichero %s no encontrado.\n", &argumento1);
+			else{
+				Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
+				GrabarByteMaps(&ext_bytemaps,fent);
+				GrabarSuperBloque(&ext_superblock,fent);
+				grabardatos=1;
+			}
 			
 			continue;
 		}
@@ -320,6 +328,8 @@ int main()
 				printf("ERROR: El fichero %s ya existe.\n", &argumento2);
 			else if (i == 0)
 				printf("ERROR: Fichero %s no encontrado.\n", &argumento1);
+			else
+				Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
 			
 			continue;
 		}
@@ -328,21 +338,23 @@ int main()
 
 			if (i==0)
 				printf("ERROR: Fichero %s no encontrado.\n", &argumento1);
+			else{
+				Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
+				GrabarByteMaps(&ext_bytemaps,fent);
+				GrabarSuperBloque(&ext_superblock,fent);
+			}
 			
 			continue;
 		}
 
 		// Escritura de metadatos en comandos rename, remove, copy     
-		/*Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
-		GrabarByteMaps(&ext_bytemaps,fent);
-		GrabarSuperBloque(&ext_superblock,fent);
-		if (grabardatos)
+		if (grabardatos){
 			GrabarDatos(&memdatos,fent);
-		grabardatos = 0;*/
+		}
+		grabardatos = 0;
 		//Si el comando es salir se habrán escrito todos los metadatos
 		//faltan los datos y cerrar
 		if (strcmp(orden,"salir")==0){
-			//GrabarDatos(&memdatos,fent);
 			fclose(fent);
 			return 0;
 		}
