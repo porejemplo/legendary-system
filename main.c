@@ -131,13 +131,13 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *mem
 				linea[j][0] = '\0';
 			}
 		}
-		printf(linea[0]);
+		printf("%s\n",linea[0]);
 		
 	}
 
 	return r;
 }
-
+//Función que borra un fichero
 int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, char *nombre,  FILE *fich){
 	int r=BuscaFich(directorio, inodos, nombre);
 	
@@ -228,7 +228,7 @@ char* LeerLineaDinamica ( int tamanoMaximo ){
 
 	return linea;
 }
-
+//Funcion que actualiza el super bloque
 void actualizarSuperBloque (EXT_SIMPLE_SUPERBLOCK *psup, EXT_BYTE_MAPS *ext_bytemaps){
 	int inodosLibres = 0;
 	int bloquesLibres = 0;
@@ -242,7 +242,7 @@ void actualizarSuperBloque (EXT_SIMPLE_SUPERBLOCK *psup, EXT_BYTE_MAPS *ext_byte
 	psup->s_free_inodes_count=inodosLibres;
 	psup->s_free_blocks_count=bloquesLibres;
 }
-
+//Funcion main
 int main()
 {
 	char *comando;//[LONGITUD_COMANDO];
