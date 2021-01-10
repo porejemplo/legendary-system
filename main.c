@@ -50,6 +50,7 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
 	return r;
 }
 
+// Saca los valores del superbloque para ponerlos por pantalla
 void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup){
 	printf("Bloque %d\n", psup->s_block_size);
 	printf("inodos Particion = %d\n", psup->s_inodes_count);
@@ -59,12 +60,13 @@ void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup){
 	printf("Primer bloque de datos = %d:\n", psup->s_first_data_block);
 };
 
-// Devuelve 0 si no encuentra el fichero.
+// Devuelve 0 si no encuentra el fichero o la posicion del fichero si lo encuentra.
 int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre){
 	int r = 0;
 
 	//Buscar el ficehro.
 	for(int i = 1; i < MAX_FICHEROS;i++){
+		// Si el directorio es nulo lo ignoramos.
 		if(directorio[i].dir_inodo != NULL_INODO){
 			if (strcmp(directorio[i].dir_nfich,nombre)==0){
 				r=directorio[i].dir_inodo;
@@ -75,10 +77,13 @@ int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre)
 	return r;
 }
 
+// Imprime el dierectorio y los ficheros
 void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos){
+	// Se recorre el array de ficheros
 	for(int i = 1; i < MAX_FICHEROS;i++){
-		if(directorio[i].dir_inodo != NULL_INODO){
+		if(directorio[i].dir_inodo != NULL_INODO){ // se obvia los directorios nulos
 			printf("Fichero: %s	tamaño: %d	inodo: %d	bloques: ", directorio[i].dir_nfich, inodos->blq_inodos[directorio[i].dir_inodo].size_fichero, directorio[i].dir_inodo);
+			// A continuacion se imprimen los i-nodos y se obvian si estan vacios.
 			for(int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
 				if(inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j] != NULL_BLOQUE){
 					printf(" %d ", inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j]);
@@ -104,7 +109,7 @@ int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombrea
 	}
 
 	if (r > 0){
-		//memcpy(directorio[i].dir_nfich, nombrenuevo, LEN_NFICH);
+		// Se recorren los ficheros y cuando se encuentra se le cambia el nombre.
 		for(int i = 1; i < MAX_FICHEROS;i++){
 			if(directorio[i].dir_inodo != NULL_INODO){
 				if (strcmp(directorio[i].dir_nfich,nombreantiguo)==0){
@@ -122,17 +127,18 @@ int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombrea
 int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre){
 	int r=BuscaFich(directorio, inodos, nombre);
 	char linea [MAX_NUMS_BLOQUE_INODO][SIZE_BLOQUE];
-	if (r!=0){
-		for(int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
+	if (r!=0){	// Si se encuientra el archivo
+		for(int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){ // Se recorre la lista de los inodos
+			// Si tiene un valor se guarda el texto en la linea
 			if(inodos->blq_inodos[r].i_nbloque[j] != NULL_BLOQUE){
 				memcpy(linea[j],memdatos[inodos->blq_inodos[r].i_nbloque[j]-4].dato,SIZE_BLOQUE);
 			}
-			else{
+			else{	// Cuando se acaba la lista de i-nodos se coloca el caracter final de cadena y se sale del bucle
 				linea[j][0] = '\0';
+				break;
 			}
 		}
 		printf("%s\n",linea[0]);
-		
 	}
 
 	return r;
@@ -142,17 +148,20 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 	int r=BuscaFich(directorio, inodos, nombre);
 	
 	if (r!=0){
+		// Se busca el fichero.
 		for(int i = 1; i < MAX_FICHEROS;i++){
 			if(directorio[i].dir_inodo != NULL_INODO){
 				if (strcmp(directorio[i].dir_nfich,nombre)==0){
-					memcpy(directorio[i].dir_nfich,"       ", LEN_NFICH);
-					inodos->blq_inodos[directorio[i].dir_inodo].size_fichero=0;
+					memcpy(directorio[i].dir_nfich,"       ", LEN_NFICH);	// Se borra el nombre
+					inodos->blq_inodos[directorio[i].dir_inodo].size_fichero=0;	// se borra el tamaño
+					// y por ultimo se borran los bloques que ocupaban y se modifica el bitmap de bloques
 					for(int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
 						if(inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j] != NULL_BLOQUE){
 							ext_bytemaps->bmap_bloques[inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j]]=0;
 							inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j]=NULL_BLOQUE;
 						}
 					}
+					// Modifica el bitmap de inodos
 					ext_bytemaps->bmap_inodos[directorio[i].dir_inodo]=0;
 					directorio[i].dir_inodo=NULL_INODO;
 					break;
@@ -178,6 +187,7 @@ int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 	if (r > 0){
 		for(int i = 1; i < MAX_FICHEROS;i++){
 			if(directorio[i].dir_inodo == NULL_INODO){
+				// Se busca un inodo vacio, se guarda la direccion y se modifica el bitemap de inodos
 				for(int j = 3; j < MAX_NUMS_BLOQUE_INODO; j++){
 					if(inodos->blq_inodos[j].size_fichero== 0){
 						directorio[i].dir_inodo=j;
@@ -190,7 +200,7 @@ int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 				int cont=2;
 				for(int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
 					if(inodos->blq_inodos[r].i_nbloque[j] != NULL_BLOQUE){
-						do{
+						do{	// Se busca en el bitmap de inodos un inodo vacio
 							cont++;
 						}while(ext_bytemaps->bmap_bloques[cont]==1);
 						
@@ -207,6 +217,7 @@ int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 	return r;
 }
 
+// la funcion lee la linea y se encarga de borrar el caracter final o el salto de liena
 char* LeerLineaDinamica ( int tamanoMaximo ){
 	int tamanoLinea = 1;
 	char* linea = NULL;
