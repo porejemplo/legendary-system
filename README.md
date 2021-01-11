@@ -1,5 +1,5 @@
 # legendary-system
 SSOO - Proyecto 2
-Fernando Rodrigues Sanz
+Fernando Rodriguez Sanz
 Eduardo Sebastian de Erice
 Enrique Sancho Ferrer
